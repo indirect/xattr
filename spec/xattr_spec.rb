@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe Xattr do
   subject(:xattr) { Xattr.new(path) }
   let(:path) { "spec/fixture/backup_excluded" }
