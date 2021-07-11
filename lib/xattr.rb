@@ -39,9 +39,9 @@ class Xattr
   #
   # See <tt>man 2 listxattr</tt> for a synopsis of errors that may be raised.
   def list
-    options = _follow_symlinks_option
-    result = _allocate_result(Raw.listxattr(@path, nil, 0, options))
-    _error(Raw.listxattr(@path, result, result.size, options))
+    options = follow_symlinks_option
+    result = allocate_result(Raw.listxattr(@path, nil, 0, options))
+    check_error(Raw.listxattr(@path, result, result.size, options))
     result.to_str.split("\000")
   end
 
@@ -49,9 +49,9 @@ class Xattr
   #
   # See <tt>man 2 getxattr</tt> for a synopsis of errors that may be raised.
   def get(attribute)
-    options = _follow_symlinks_option
-    result = _allocate_result(Raw.getxattr(@path, attribute, nil, 0, 0, options))
-    _error(Raw.getxattr(@path, attribute, result, result.size, 0, options))
+    options = follow_symlinks_option
+    result = allocate_result(Raw.getxattr(@path, attribute, nil, 0, 0, options))
+    check_error(Raw.getxattr(@path, attribute, result, result.size, 0, options))
     result.to_s
   end
 
@@ -71,11 +71,11 @@ class Xattr
   #
   # See <tt>man 2 setxattr</tt> for a synopsis of errors that may be raised.
   def set(attribute, value, options = {})
-    opts = _follow_symlinks_option
+    opts = follow_symlinks_option
     opts |= Raw::CREATE if options[:create]
     opts |= Raw::REPLACE if options[:replace]
     value = value.to_s
-    _error(Raw.setxattr(@path, attribute, value, value.size, 0, opts))
+    check_error(Raw.setxattr(@path, attribute, value, value.size, 0, opts))
     value
   end
 
@@ -87,25 +87,25 @@ class Xattr
   # raised.
   def remove(attribute)
     value = get(attribute)
-    _error(Raw.removexattr(@path, attribute, _follow_symlinks_option))
+    check_error(Raw.removexattr(@path, attribute, follow_symlinks_option))
     value
   end
 
   private
 
   # All *xattr() functions return -1 on error
-  def _error(return_code)
+  def check_error(return_code)
     raise SystemCallError.new(nil, Fiddle.last_error) if return_code.negative?
   end
 
   # Returns an int option to pass to a Raw.*xattr() function
-  def _follow_symlinks_option
+  def follow_symlinks_option
     @follow_symlinks ? 0 : Raw::NOFOLLOW
   end
 
   # Allocate a string to store results in
-  def _allocate_result(len)
-    _error(len)
+  def allocate_result(len)
+    check_error(len)
     Fiddle::Pointer[(" " * len)]
   end
 end
