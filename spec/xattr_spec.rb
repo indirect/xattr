@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe Xattr do
-  subject(:xattr) { Xattr.new(path) }
+  subject(:xattr) { described_class.new(path) }
+
   let(:path) { "spec/fixture/backup_excluded" }
   let(:exclude_key) { "com.apple.metadata:com_apple_backup_excludeItem" }
   let(:exclude_value) { "bplist00_\x10\x11com.apple.backupd\b" }
@@ -12,21 +13,31 @@ RSpec.describe Xattr do
     end
   end
 
-  describe "get / []" do
+  describe "get" do
     it "gets a named xattr" do
       expect(xattr.get(exclude_key)).to eq(exclude_value)
+    end
+  end
+
+  describe "[]" do
+    it "gets a named xattr" do
       expect(xattr[exclude_key]).to eq(exclude_value)
     end
   end
 
-  describe "set / []=" do
+  describe "set" do
     after { `/usr/bin/xattr -d test #{path}` }
 
     it "sets a given xattr name to a given value" do
       xattr.set("test", "test value")
       expect(`/usr/bin/xattr -p test #{path}`.chomp).to eq("test value")
-      `/usr/bin/xattr -d test #{path}`
+    end
+  end
 
+  describe "[]=" do
+    after { `/usr/bin/xattr -d test #{path}` }
+
+    it "sets a given xattr name to a given value" do
       xattr["test"] = "test value"
       expect(`/usr/bin/xattr -p test #{path}`.chomp).to eq("test value")
     end
@@ -39,11 +50,9 @@ RSpec.describe Xattr do
     end
 
     it "removes a given xattr" do
-      expect(xattr.get("to_remove")).to eq("test value")
-      expect {
+      expect do
         xattr.remove("to_remove")
-      }.to change { `/usr/bin/xattr #{path}` }
+      end.to change { `/usr/bin/xattr #{path}` }
     end
   end
-
 end

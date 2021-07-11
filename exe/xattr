@@ -4,12 +4,12 @@
 require "xattr"
 require "optparse"
 
-def quit(msg, exit_value=1)
+def quit(msg, exit_value = 1)
   puts msg
   exit(exit_value)
 end
 
-opts = OptionParser.new do |opts|
+op = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename($PROGRAM_NAME)} FILE [[-]ATTRIBUTE [VALUE]]
 
     * FILE                 -> The attributes of FILE.
@@ -25,28 +25,29 @@ opts = OptionParser.new do |opts|
 end
 
 begin
-  opts.parse(ARGV[0, 1])
+  op.parse(ARGV[0, 1])
 
   argv_len = ARGV.length
-  if argv_len > 0
+  if argv_len.positive?
     xattr = Xattr.new(ARGV[0])
-    result = if argv_len == 2
+    result = case argv_len
+             when 2
                if ARGV[1][/^-/]
                  xattr.remove(ARGV[1].sub("-", ""))
                else
                  xattr.get(ARGV[1])
                end
-             elsif argv_len == 3
+             when 3
                xattr.set(ARGV[1], ARGV[2])
              else
                xattr.list.join("\n")
              end
-    puts result if result and result.any?
+    puts result if result&.any?
   else
     quit(opts)
   end
 rescue SystemCallError => e
   quit("#{e.class}: #{e}")
 rescue StandardError => e
-  quit("#{e.class}: #{e}\n\n#{opts}")
+  quit("#{e.class}: #{e}\n\n#{op}")
 end
