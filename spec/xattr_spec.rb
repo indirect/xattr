@@ -21,29 +21,29 @@ RSpec.describe Xattr do
   describe "set" do
     after do
       # remove the xattr using apple's tooling
-      `xattr -d test #{path}`
+      `/usr/bin/xattr -d test #{path}`
     end
 
     it "sets a given xattr name to a given value" do
       expect {
         xattr.set("test", "test value")
         # check for the xattr using apple's tooling
-        expect(`xattr -p test #{path}`.chomp).to eq("test value")
-      }.to change { `xattr #{path}` }
+        expect(`/usr/bin/xattr -p test #{path}`.chomp).to eq("test value")
+      }.to change { `/usr/bin/xattr #{path}` }
     end
   end
 
   describe "remove" do
     before do
       # create an xattr using apple's tooling
-      `xattr -w to_remove "test value" #{path}`
+      `/usr/bin/xattr -w to_remove "test value" #{path}`
     end
 
     it "removes a given xattr" do
       expect(xattr.get("to_remove")).to eq("test value")
       expect {
         xattr.remove("to_remove")
-      }.to change { `xattr #{path}` }
+      }.to change { `/usr/bin/xattr #{path}` }
     end
   end
 
