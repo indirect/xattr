@@ -5,7 +5,10 @@ RSpec.describe Xattr do
     expect(Xattr::VERSION).not_to be nil
   end
 
-  it "does something useful" do
-    expect(false).to eq(true)
+  describe "list" do
+    it "lists all xattrs" do
+      expect(Xattr.new(".bundle/ruby").list).to eq("abc")
+    end
   end
+
 end
