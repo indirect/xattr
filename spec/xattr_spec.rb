@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
+require "fileutils"
+
 RSpec.describe Xattr do
   subject(:xattr) { described_class.new(path) }
 
   let(:path) { "spec/fixture/backup_excluded" }
   let(:exclude_key) { "com.apple.metadata:com_apple_backup_excludeItem" }
   let(:exclude_value) { "bplist00_\x10\x11com.apple.backupd\b" }
+
+  before(:all) do
+    FileUtils.mkdir_p "spec/fixture"
+    FileUtils.touch("spec/fixture/backup_excluded")
+    `tmutil addexclusion spec/fixture/backup_excluded`
+  end
 
   describe "list" do
     it "lists all xattrs" do
