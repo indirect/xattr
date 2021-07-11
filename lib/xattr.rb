@@ -8,7 +8,7 @@ require_relative "xattr/version"
 class Xattr
   class Error < StandardError; end
 
-  module Raw
+  module Lib
     extend Fiddle::Importer
 
     # Don't follow symbolic links
@@ -40,8 +40,8 @@ class Xattr
   # See <tt>man 2 listxattr</tt> for a synopsis of errors that may be raised.
   def list
     options = follow_symlinks_option
-    result = allocate_result(Raw.listxattr(@path, nil, 0, options))
-    check_error(Raw.listxattr(@path, result, result.size, options))
+    result = allocate_result(Lib.listxattr(@path, nil, 0, options))
+    check_error(Lib.listxattr(@path, result, result.size, options))
     result.to_str.split("\000")
   end
 
@@ -50,8 +50,8 @@ class Xattr
   # See <tt>man 2 getxattr</tt> for a synopsis of errors that may be raised.
   def get(attribute)
     options = follow_symlinks_option
-    result = allocate_result(Raw.getxattr(@path, attribute, nil, 0, 0, options))
-    check_error(Raw.getxattr(@path, attribute, result, result.size, 0, options))
+    result = allocate_result(Lib.getxattr(@path, attribute, nil, 0, 0, options))
+    check_error(Lib.getxattr(@path, attribute, result, result.size, 0, options))
     result.to_s
   end
 
@@ -72,10 +72,10 @@ class Xattr
   # See <tt>man 2 setxattr</tt> for a synopsis of errors that may be raised.
   def set(attribute, value, options = {})
     opts = follow_symlinks_option
-    opts |= Raw::CREATE if options[:create]
-    opts |= Raw::REPLACE if options[:replace]
+    opts |= Lib::CREATE if options[:create]
+    opts |= Lib::REPLACE if options[:replace]
     value = value.to_s
-    check_error(Raw.setxattr(@path, attribute, value, value.size, 0, opts))
+    check_error(Lib.setxattr(@path, attribute, value, value.size, 0, opts))
     value
   end
 
@@ -87,7 +87,7 @@ class Xattr
   # raised.
   def remove(attribute)
     value = get(attribute)
-    check_error(Raw.removexattr(@path, attribute, follow_symlinks_option))
+    check_error(Lib.removexattr(@path, attribute, follow_symlinks_option))
     value
   end
 
@@ -98,9 +98,9 @@ class Xattr
     raise SystemCallError.new(nil, Fiddle.last_error) if return_code.negative?
   end
 
-  # Returns an int option to pass to a Raw.*xattr() function
+  # Returns an int option to pass to a Lib.*xattr() function
   def follow_symlinks_option
-    @follow_symlinks ? 0 : Raw::NOFOLLOW
+    @follow_symlinks ? 0 : Lib::NOFOLLOW
   end
 
   # Allocate a string to store results in
